@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institution Employer Directory</title>
+    <style>
+        /* CSS Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 50px;
+        }
+        
+        .directory-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input[type="text"],
+        input[type="tel"],
+        input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .employer-list {
+            margin-top: 30px;
+        }
+        
+        .employer-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+        
+        .employer-name {
+            font-weight: 600;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+        
+        .employer-title {
+            color: #7f8c8d;
+            margin: 5px 0;
+        }
+        
+        .employer-phone {
+            color: #3498db;
+        }
+        
+        .message-form {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .blurred {
+            filter: blur(5px);
+            user-select: none;
+            pointer-events: none;
+        }
+        
+        .logout-btn {
+            background-color: #e74c3c;
+            float: right;
+        }
+        
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Form -->
+        <div class="login-container" id="loginContainer">
+            <h1>Institution Employer Directory</h1>
+            <h2>Login to Access Directory</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Your Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="token">Token Number</label>
+                    <input type="text" id="token" name="token" required>
+                </div>
+                <button type="submit">Access Directory</button>
+            </form>
+        </div>
+        
+        <!-- Directory Content (initially hidden) -->
+        <div class="directory-container" id="directoryContainer">
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+            <h1>Employer Directory</h1>
+            <p>Welcome, <span id="userName"></span>!</p>
+            
+            <div class="employer-list" id="employerList">
+                <h2>All Employers</h2>
+                <!-- Employer cards will be inserted here by JavaScript -->
+            </div>
+            
+            <div class="message-form">
+                <h2>Send Message to Seat Back</h2>
+                <form id="messageForm">
+                    <div class="form-group">
+                        <label for="message">Your Message</label>
+                        <input type="text" id="message" name="message" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Your Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <button type="submit">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample employer data
+        const employers = [
+            { name: "John Smith", title: "Director of Operations", phone: "(555) 123-4567" },
+            { name: "Sarah Johnson", title: "HR Manager", phone: "(555) 234-5678" },
+            { name: "Michael Brown", title: "Finance Director", phone: "(555) 345-6789" },
+            { name: "Emily Davis", title: "Academic Dean", phone: "(555) 456-7890" },
+            { name: "Robert Wilson", title: "IT Manager", phone: "(555) 567-8901" },
+            { name: "Jennifer Lee", title: "Admissions Officer", phone: "(555) 678-9012" }
+        ];
+
+        // DOM Elements
+        const loginContainer = document.getElementById('loginContainer');
+        const directoryContainer = document.getElementById('directoryContainer');
+        const loginForm = document.getElementById('loginForm');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userNameSpan = document.getElementById('userName');
+        const employerList = document.getElementById('employerList');
+        const messageForm = document.getElementById('messageForm');
+
+        // Check if user is already logged in (from sessionStorage)
+        if (sessionStorage.getItem('loggedIn') === 'true') {
+            showDirectory();
+            userNameSpan.textContent = sessionStorage.getItem('userName');
+            displayEmployers();
+        }
+
+        // Login Form Submission
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const token = document.getElementById('token').value;
+            
+            // Simple validation
+            if (name && phone && token) {
+                // Store login info in sessionStorage
+                sessionStorage.setItem('loggedIn', 'true');
+                sessionStorage.setItem('userName', name);
+                sessionStorage.setItem('userPhone', phone);
+                sessionStorage.setItem('userToken', token);
+                
+                showDirectory();
+                userNameSpan.textContent = name;
+                displayEmployers();
+            } else {
+                alert('Please fill in all fields');
+            }
+        });
+
+        // Logout Button
+        logoutBtn.addEventListener('click', function() {
+            sessionStorage.clear();
+            hideDirectory();
+            loginForm.reset();
+        });
+
+        // Message Form Submission
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const message = document.getElementById('message').value;
+            const email = document.getElementById('email').value;
+            
+            // In a real application, you would send this data to a server
+            alert(`Message sent successfully!\n\nEmail: ${email}\nMessage: ${message}`);
+            messageForm.reset();
+        });
+
+        // Function to show directory
+        function showDirectory() {
+            loginContainer.style.display = 'none';
+            directoryContainer.style.display = 'block';
+        }
+
+        // Function to hide directory
+        function hideDirectory() {
+            directoryContainer.style.display = 'none';
+            loginContainer.style.display = 'block';
+        }
+
+        // Function to display employers
+        function displayEmployers() {
+            employerList.innerHTML = '<h2>All Employers</h2>';
+            
+            employers.forEach(employer => {
+                const card = document.createElement('div');
+                card.className = 'employer-card';
+                card.innerHTML = `
+                    <div class="employer-name">${employer.name}</div>
+                    <div class="employer-title">${employer.title}</div>
+                    <div class="employer-phone">Phone: ${employer.phone}</div>
+                `;
+                employerList.appendChild(card);
+            });
+        }
+
+        // Blur content if not logged in (when page is accessed directly)
+        window.addEventListener('DOMContentLoaded', function() {
+            if (sessionStorage.getItem('loggedIn') !== 'true' && 
+                !window.location.href.includes('login')) {
+                document.body.classList.add('blurred');
+                loginContainer.style.display = 'block';
+                loginContainer.classList.remove('blurred');
+            }
+        });
+    </script>
+</body>
+</html>
